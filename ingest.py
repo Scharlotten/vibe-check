@@ -4,6 +4,7 @@ from google.oauth2 import service_account
 import vertexai
 from vertexai.generative_models import GenerativeModel
 import requests
+from openai import OpenAI
 
 
 @st.cache_resource
@@ -21,7 +22,8 @@ if "pid_collection" not in st.session_state:
     st.session_state["pid_collection"] = get_collection(st.secrets["ASTRA_DB_PID_COLLECTION_NAME"])
 
 @st.cache_resource
-def load_model():
+def load_vertexai_model():
+
     credentials = service_account.Credentials.from_service_account_info(st.secrets["GCP_SERVICE_ACCOUNT"])
     vertexai.init(
         project=st.secrets["GCP_SERVICE_ACCOUNT"]["project_id"],
@@ -31,8 +33,17 @@ def load_model():
     print("model:", model)
     return model
 
-if "model" not in st.session_state:
-    st.session_state["model"] = load_model()
+def load_gpt_model():
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    return client
+
+
+if "vertexai_model" not in st.session_state:
+    st.session_state["vertexai_model"] = load_vertexai_model()
+
+if "gpt_model" not in st.session_state:
+    st.session_state["gpt_model"] = load_gpt_model()
+    
 
 @st.cache_data
 def get_current_pid():
@@ -76,9 +87,17 @@ def get_song_description(song_name, artist_name):
         kind of setting would be appropriate to listen to. Do not make assumptions based purely on the song name, you should
         try to use real information about the song to come up with your setting description.
     """
-    contents = [prompt]
-    response = st.session_state.model.generate_content(contents)
-    return response.text
+    #contents = [prompt]
+    #response = st.session_state.model.generate_content(contents)
+    #return response.text
+    response = st.session_state.gpt_model.chat.completions.create(
+        model="gpt-4o",
+        messages=
+        [
+            {"role": "system", "content": prompt},
+        ]
+    )
+    return response.choices[0].message.content.strip()
 
 def load_tracks_to_astra(new_playlist_id):
     playlist_tracks = get_tracks_from_spotify(new_playlist_id)

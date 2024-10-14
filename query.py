@@ -18,7 +18,7 @@ def handleSubmit():
         image = Image.from_bytes(st.session_state.photo_input.getvalue())
         image_part = Part.from_image(image)
         contents = [image_part, prompt]
-        response = st.session_state.model.generate_content(contents)
+        response = st.session_state.vertexai_model.generate_content(contents)
         setting_description = response.candidates[0].content.parts[0].text
         st.session_state.user_feedback = setting_description
         if st.session_state.text_input:
