@@ -6,8 +6,10 @@ from utils.connect import intialize_connections
 intialize_connections()
 
 prompt = """
-    Please describe the setting that you see in the image, including descriptors of the ambiance and vibe.
-    What types of music would be fitting for this setting? What kind of mood is conveyed in the image?
+    You are an AI agent that helps users find music that matches their current setting.
+    Please describe the ambiance and vibe of the included image. 
+    What types of music would be fitting for this setting? 
+    What kind of mood is conveyed in the image?
 """
 
 if 'user_feedback' not in st.session_state:
@@ -22,44 +24,32 @@ def get_setting_description_from_image(photo_input):
     if photo_input:
         image_bytes = photo_input.getvalue()
         base64_image = base64.b64encode(image_bytes).decode('utf-8')
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {st.secrets["OPENAI_API_KEY"]}"
-        }
-        payload = {
-            "model": "gpt-4o",
-            "messages": [
+
+        response = st.session_state.openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
                 {
-                "role": "user",
-                "content": [
-                    {
-                    "type": "text",
-                    "text": """
-                        You are an AI agent that helps users find music that matches their current setting.
-                        Please describe the ambiance and vibe of the included image. 
-                        What types of music would be fitting for this setting? 
-                        What kind of mood is conveyed in the image?"""
-                    },
-                    {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{base64_image}"
-                        }
-                    }
-                ]
-                }
+                    "role":"user",
+                    "content":[
+                        {
+                            "type": "text",
+                            "text": prompt,
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url":{
+                                "url":f"data:image/jpeg;base64,{base64_image}",
+                            },
+                        },
+                    ],
+                },
             ],
-            "max_tokens": 300
-            }
-        print("payload", payload)
-        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-        print("response", response.json())
-        setting_description = response.json()["choices"][0]["message"]["content"]
+            max_tokens=300
+        )
+        print("response", response)
+        setting_description = response.choices[0].message.content
         print(setting_description)
-
     return setting_description
-
-
 
 def handleSubmit():
     print('submit!')
