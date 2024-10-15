@@ -1,51 +1,11 @@
 import streamlit as st
-import astrapy
-from google.oauth2 import service_account
-import vertexai
-from vertexai.generative_models import GenerativeModel
+from utils.connect import intialize_connections
 import requests
-from openai import OpenAI
 
 
-@st.cache_resource
-def get_collection(collection_name):
-    client = astrapy.DataAPIClient(st.secrets["ASTRA_DB_APPLICATION_TOKEN"])
-    database = client.get_database_by_api_endpoint(st.secrets["ASTRA_DB_API_ENDPOINT"])
-    collection = database.get_collection(collection_name)
-    print("collection:", collection)
-    return collection
-
-if "song_collection" not in st.session_state:
-    st.session_state["song_collection"] = get_collection(st.secrets["ASTRA_DB_COLLECTION_NAME"])
-
-if "pid_collection" not in st.session_state:
-    st.session_state["pid_collection"] = get_collection(st.secrets["ASTRA_DB_PID_COLLECTION_NAME"])
+intialize_connections()
 
 @st.cache_resource
-def load_vertexai_model():
-
-    credentials = service_account.Credentials.from_service_account_info(st.secrets["GCP_SERVICE_ACCOUNT"])
-    vertexai.init(
-        project=st.secrets["GCP_SERVICE_ACCOUNT"]["project_id"],
-        credentials=credentials
-    )
-    model = GenerativeModel("gemini-1.5-pro-001")
-    print("model:", model)
-    return model
-
-def load_gpt_model():
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-    return client
-
-
-if "vertexai_model" not in st.session_state:
-    st.session_state["vertexai_model"] = load_vertexai_model()
-
-if "gpt_model" not in st.session_state:
-    st.session_state["gpt_model"] = load_gpt_model()
-    
-
-@st.cache_data
 def get_current_pid():
     pid_document = st.session_state.pid_collection.find_one({})
     if pid_document:
@@ -87,10 +47,7 @@ def get_song_description(song_name, artist_name):
         kind of setting would be appropriate to listen to. Do not make assumptions based purely on the song name, you should
         try to use real information about the song to come up with your setting description.
     """
-    #contents = [prompt]
-    #response = st.session_state.model.generate_content(contents)
-    #return response.text
-    response = st.session_state.gpt_model.chat.completions.create(
+    response = st.session_state.openai_client.chat.completions.create(
         model="gpt-4o",
         messages=
         [
@@ -101,6 +58,7 @@ def get_song_description(song_name, artist_name):
 
 def load_tracks_to_astra(new_playlist_id):
     playlist_tracks = get_tracks_from_spotify(new_playlist_id)
+    # TODO: Add progress bar
     for item in playlist_tracks['items']:
         track = item['track']
         song = track["name"]
@@ -128,13 +86,16 @@ def load_tracks_to_astra(new_playlist_id):
 
 def clear_playlist():
     print("clear playlist called")
-    # st.session_state.song_collection.delete_many({})
+    st.session_state.song_collection.delete_many({})
     st.session_state.pid_collection.delete_many({})
+    st.session_state.current_pid = None
 
 def load_playlist():
     print("load playlist called")
-    clear_playlist()
-    load_tracks_to_astra(st.session_state.pid_input)
+    if st.session_state.pid_input != st.session_state.current_pid:
+        # Only run if the PID is different than the previous PID
+        clear_playlist()
+        load_tracks_to_astra(st.session_state.pid_input)
 
 
 ### UI ###
@@ -142,8 +103,15 @@ st.title("Vibe Check :musical_note:")
 
 with st.container(border=True):
     st.write("**Current Playlist ID:** ", st.session_state.current_pid)
-    st.link_button("Open in Spotify", "https://open.spotify.com/user/spotify/playlist/%s" % st.session_state.current_pid)
-    st.button("Clear")
+    if st.session_state.current_pid:
+        disable_button = False
+    else:
+        disable_button = True
+    st.link_button(
+        "Open in Spotify",
+        "https://open.spotify.com/user/spotify/playlist/%s" % st.session_state.current_pid,
+        disabled=disable_button)
+    st.button("Clear", on_click=clear_playlist)
 
 with st.form(key="new_playlist_form"):
     st.markdown(
