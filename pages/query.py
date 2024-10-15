@@ -93,7 +93,7 @@ with st.form(key="query_form"):
         photo_input = st.file_uploader(
             "Upload a photo:",
             key="photo_input",
-            type=["jpg", "jpeg", "png"]
+            type=["jpg", "jpeg", "png", "heic"]
         )
     text_input = st.text_input(
         "Write a description of your setting:",
