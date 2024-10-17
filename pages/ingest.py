@@ -1,6 +1,7 @@
 import streamlit as st
 from utils.connect import intialize_connections
 import requests
+import time
 
 
 intialize_connections()
@@ -56,22 +57,29 @@ def get_song_description(song_name, artist_name):
     )
     return response.choices[0].message.content.strip()
 
+
 def load_tracks_to_astra(new_playlist_id):
+    progress_bar = st.progress(0, "Loading tracks to Astra DB...")
     playlist_tracks = get_tracks_from_spotify(new_playlist_id)
-    # TODO: Add progress bar
-    for item in playlist_tracks['items']:
+    num_tracks = len(playlist_tracks['items'])
+    for i in range(num_tracks):
+        percentage_complete = i / float(num_tracks)
+        st.session_state["current_loading_num"] = i / float(num_tracks)
+        item = playlist_tracks['items'][i]
         track = item['track']
         song = track["name"]
         artist = track['artists'][0]['name']
         song_url = track['external_urls']['spotify']
-
         print(f"Song Name: {song} | Artist Name: {artist} | Song URL: {song_url}")
 
         existing_document = st.session_state.song_collection.find_one({"Song_URL": song_url})
         if existing_document:
-            print("Skipping this song - already in DB")
-            pass
+            progress_text = f"Skipping song {i + 1} of {num_tracks}, already loaded: {song} - {artist}"
+            progress_bar.progress(percentage_complete, progress_text)
+            time.sleep(0.1)
         else:
+            progress_text = f"Loading song {i + 1} of {num_tracks}: {song} - {artist}"
+            progress_bar.progress(percentage_complete, progress_text)
             description = get_song_description(song, artist)
             print(description)
             document = {
@@ -81,6 +89,9 @@ def load_tracks_to_astra(new_playlist_id):
                 "$vectorize": description
             }
             st.session_state.song_collection.insert_one(document)
+    progress_bar.progress(1.0, f"Finished loading {i + 1} of {num_tracks} songs to Astra DB.")
+    time.sleep(2)
+    progress_bar.empty()
     st.session_state.pid_collection.insert_one({"pid": new_playlist_id})
     st.session_state.current_pid = new_playlist_id
 
@@ -92,11 +103,15 @@ def clear_playlist():
 
 def load_playlist():
     print("load playlist called")
-    if st.session_state.pid_input != st.session_state.current_pid:
-        # Only run if the PID is different than the previous PID
-        clear_playlist()
+    if st.session_state.pid_input:
         load_tracks_to_astra(st.session_state.pid_input)
+    else:
+        st.warning("Please submit a valid Spotify Playlist ID.")
 
+def remove_few_songs_from_astra():
+    for i in range(2):
+        result = st.session_state.song_collection.delete_one({})
+        print(result)
 
 ### UI ###
 st.title("Vibe Check :musical_note:")
@@ -108,10 +123,11 @@ with st.container(border=True):
     else:
         disable_button = True
     st.link_button(
-        "Open in Spotify",
+        "Open playlist in Spotify",
         "https://open.spotify.com/user/spotify/playlist/%s" % st.session_state.current_pid,
         disabled=disable_button)
-    st.button("Clear", on_click=clear_playlist)
+    st.button("Clear full playlist", on_click=clear_playlist)
+    st.button("Remove a few songs from Astra DB", on_click=remove_few_songs_from_astra, help="This will remove 2 random songs from the Astra DB vector store - it will retain the rest of the songs in Astra DB.")
 
 with st.form(key="new_playlist_form"):
     st.markdown(
@@ -129,4 +145,4 @@ with st.form(key="new_playlist_form"):
         key="pid_input"
     )
     
-    st.form_submit_button("Load to Astra DB", on_click=load_playlist)
+    st.form_submit_button("Load full playlist to Astra DB", on_click=load_playlist)
