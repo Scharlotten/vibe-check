@@ -1,10 +1,13 @@
 # Vibe Check - Multimodal Music Search Application
 
 ### Intro:
-Struggling to find the perfect soundtrack for every moment? Whether you're powering through a workout, setting the mood for a dinner party, or studying for a big exam, having the right songs playing can make all the difference. Vibe check allows you to upload images/text and receive curated songs based on your vibe!
+Struggling to find the perfect soundtrack for every moment? Whether you're powering through a workout, setting the mood for a Halloween party, or studying for a big exam, having the right songs playing can make all the difference. Vibe check allows you to upload images/text and receive curated songs based on your vibe!
+
+{TODO: Insert image of app}
+
 
 ### Overview:
-This notebook shows you how to use AstraDB and OpenAI to perform vector similarity searches and multi-modal Retrieval Augmented Generation (RAG)
+This repository uses DataStax Astra DB, OpenAI, and the Spotify API to perform vector similarity searches and multi-modal Retrieval Augmented Generation (RAG).
 
 ### Before you get started:
 Make sure you have the following:
