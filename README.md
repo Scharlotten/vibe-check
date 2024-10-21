@@ -3,7 +3,7 @@
 ### Intro:
 Struggling to find the perfect soundtrack for every moment? Whether you're powering through a workout, setting the mood for a Halloween party, or studying for a big exam, having the right songs playing can make all the difference. Vibe check allows you to upload images/text and receive curated songs based on your vibe!
 
-{TODO: Insert image of app}
+![App Preview](./images/app_preview.png)
 
 
 ### Overview:

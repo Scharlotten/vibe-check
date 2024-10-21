@@ -1,5 +1,5 @@
 import streamlit as st
-import base64, requests
+import base64
 from utils.connect import intialize_connections
 
 
@@ -75,6 +75,7 @@ def findSongs(setting_description):
 
 
 ### UI ###
+
 st.title("Vibe Check :musical_note:")
 
 photo_method = st.radio(
@@ -85,10 +86,12 @@ photo_method = st.radio(
 with st.form(key="query_form"):
     st.header("Multimodal Inputs")
     if photo_method == "Camera":
-        photo_input = st.camera_input(
-            "Take a picture of your setting:", 
-            key="photo_input",
-        )
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            photo_input = st.camera_input(
+                "Take a picture of your setting:", 
+                key="photo_input"
+            )
     elif photo_method == "Upload":
         photo_input = st.file_uploader(
             "Upload a photo:",
@@ -100,6 +103,11 @@ with st.form(key="query_form"):
         key="text_input"
     )
     st.form_submit_button(on_click=handleSubmit)
+
+if st.session_state['photo_input']:
+    with st.container(border=True):
+        st.header("Uploaded Image")
+        st.image(st.session_state['photo_input'].getvalue(), width=300)
 
 with st.container(border=True):
     st.header("Outputs")
