@@ -35,7 +35,7 @@ What kind of mood is conveyed in the image?
 3. We display these songs and inlude links to each song on Spotify.
 
 #### Architecture Diagram
-TODO: INSERT ARCHITECTURE DIAGRAM
+![Architecture Diagram](./images/architecture.png)
 
 You can also view the code for this project and run it yourself in this [Google Colab](https://colab.research.google.com/drive/1Y3R5HO6SH5-IzMItbZSmCT8L08d4aEri).
 
