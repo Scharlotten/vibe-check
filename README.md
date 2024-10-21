@@ -82,3 +82,6 @@ Make sure you have the following:
    ```
 
 If you want to deploy the application on Streamlit Community Cloud, [follow these instructions](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
+
+Have any questions or suggestions for this project? 
+Submit an issue to the repository, or message us on the [DataStax Developers Discord](https://discord.gg/datastax)! 
