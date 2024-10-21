@@ -9,6 +9,37 @@ Struggling to find the perfect soundtrack for every moment? Whether you're power
 ### Overview:
 This repository uses DataStax Astra DB, OpenAI, and the Spotify API to perform vector similarity searches and multi-modal Retrieval Augmented Generation (RAG).
 
+#### Ingestion
+How does this application ingest Spotify song data?
+1. We send a playlist ID to the the Spotify API and retrieve a full list of the song names, artists, and song IDs for each song in that playlist.
+2. We iterate through every song in the playlist and sends the song name and artist to an LLM in order to generate matching setting descriptions. This is the prompt template that we used for this step:
+```
+You are an AI agent that helps users determine what songs to play to match their setting.
+Based on the included song name and artist, '{song_name}' by '{artist_name}', write up
+a description of what kind of setting would be appropriate to listen to.
+Do not make assumptions based purely on the song name, you should try to use
+real information about the song to come up with your setting description.
+```
+3. We send the song data + song descriptions to our vectorize-enabled collection in Astra DB. Embeddings are generated using the vectorize integration while we are loading the data.
+
+#### Querying
+How does this application make song recommendations?
+1. We take photo input from the camera or file uploader and send this image to a multimodal LLM. The LLM generates setting descriptions that match the vibe depicted in the image. Here is the prompt we used to generate the setting description:
+```
+You are an AI agent that helps users find music that matches their current setting.
+Please describe the ambiance and vibe of the included image. 
+What types of music would be fitting for this setting? 
+What kind of mood is conveyed in the image?
+```
+2. We combine the generated setting description with any optional additional text input from the user. This full setting description is used to query the database, which returns the top 5 songs from the database with descriptions that match the query.
+3. We display these songs and inlude links to each song on Spotify.
+
+#### Architecture Diagram
+TODO: INSERT ARCHITECTURE DIAGRAM
+
+You can also view the code for this project and run it yourself in this [Google Colab](https://colab.research.google.com/drive/1Y3R5HO6SH5-IzMItbZSmCT8L08d4aEri).
+
+
 ### Before you get started:
 Make sure you have the following:
 
@@ -17,7 +48,6 @@ Make sure you have the following:
 *   OpenAI Account
 *   Spotify Account with a playlist
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://vibe-check.streamlit.app/)
 
 ### How to run it on your own machine
 
