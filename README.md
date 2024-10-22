@@ -44,7 +44,7 @@ You can also view the code for this project and run it yourself in this [Google 
 Make sure you have the following:
 
 
-*   Astra DB account. You can sign up with a free account [here](https://astra.datastax.com)
+*   Astra DB account. You can sign up for a free account [here](https://astra.datastax.com/signup?utm_medium=email&utm_source=datastax&utm_campaign=music_search_livestream&utm_content=astra_sign_up)
 *   OpenAI Account
 *   Spotify Account with a playlist
 
@@ -81,7 +81,9 @@ Make sure you have the following:
    $ streamlit run streamlit_app.py
    ```
 
-If you want to deploy the application on Streamlit Community Cloud, [follow these instructions](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
+### What Next?
+
+If you want to deploy your application on Streamlit Community Cloud, [follow these instructions](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
 
 Have any questions or suggestions for this project? 
 Submit an issue to the repository, or message us on the [DataStax Developers Discord](https://discord.gg/datastax)! 
