@@ -51,18 +51,8 @@ def get_setting_description_from_image(photo_input):
         print(setting_description)
     return setting_description
 
-def handleSubmit():
-    print('submit!')
-    if st.session_state.photo_input or st.session_state.text_input:
-        setting_description = get_setting_description_from_image(st.session_state.photo_input)
-        full_search_query = " ".join([setting_description, st.session_state.text_input])
-        st.session_state.user_feedback = full_search_query
-        findSongs(full_search_query)
-    else:
-        st.session_state.user_feedback = None
-
-def findSongs(setting_description):
-    print("findSongs called")
+def find_songs(setting_description):
+    print("find_songs called")
     top_songs = list(st.session_state.song_collection.find(
         sort={"$vectorize": setting_description},
         projection={"_id": 0, "$vectorize": 1, "$vector": 0},
@@ -72,6 +62,16 @@ def findSongs(setting_description):
     # print(top_songs)
     st.session_state.top_songs = top_songs
     return
+
+def handle_submit():
+    print('submit!')
+    if st.session_state.photo_input or st.session_state.text_input:
+        setting_description = get_setting_description_from_image(st.session_state.photo_input)
+        full_search_query = " ".join([setting_description, st.session_state.text_input])
+        st.session_state.user_feedback = full_search_query
+        find_songs(full_search_query)
+    else:
+        st.session_state.user_feedback = None
 
 
 ### UI ###
@@ -102,7 +102,7 @@ with st.form(key="query_form"):
         "Write a description of your setting:",
         key="text_input"
     )
-    st.form_submit_button(on_click=handleSubmit)
+    st.form_submit_button(on_click=handle_submit)
 
 if st.session_state['photo_input']:
     with st.container(border=True):
